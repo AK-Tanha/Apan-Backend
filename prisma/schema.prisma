@@ -71,12 +71,15 @@ model ProductVariant {
   color     String
   stock     Int      @default(0)
   price     Decimal? @db.Decimal(10, 2)
+  costPrice Decimal? @db.Decimal(10, 2)
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   cartItems  CartItem[]
   orderItems OrderItem[]
+  purchaseOrderItems PurchaseOrderItem[] 
+  stockMovements     StockMovement[]   
 
   @@unique([productId, size, color])
 }
@@ -132,4 +135,71 @@ model OrderItem {
 
   variantId String
   variant   ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+enum StockMovementType {
+  PURCHASE_IN
+  SALE_OUT
+  ADJUSTMENT
+  RETURN_IN
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  email     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id          String              @id @default(uuid())
+  status      PurchaseOrderStatus @default(PENDING)
+  totalCost   Decimal             @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime            @default(now())
+  receivedAt  DateTime?
+
+  vendorId String
+  vendor   Vendor @relation(fields: [vendorId], references: [id])
+
+  items PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id       String  @id @default(uuid())
+  quantity Int
+  unitCost Decimal @db.Decimal(10, 2)
+
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+model StockMovement {
+  id        String            @id @default(uuid())
+  type      StockMovementType
+  quantity  Int               // always positive; `type` tells you direction
+  reason    String?
+  createdAt DateTime          @default(now())
+
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+
+  // optional links back to the source of the movement, for traceability
+  orderId         String?
+  purchaseOrderId String?
 }
