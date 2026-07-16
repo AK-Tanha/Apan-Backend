@@ -10,12 +10,13 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   create(dto: CreateProductDto) {
-    const { imageUrls, variants, categoryId, ...rest } = dto;
+    const { imageUrls, variants, categoryId, vendorId, ...rest } = dto;
 
     return this.prisma.product.create({
       data: {
         ...rest,
         category: { connect: { id: categoryId } },
+        ...(vendorId && { suplier: { connect: { id: vendorId } } }),
         images: imageUrls
           ? { create: imageUrls.map((url) => ({ url })) }
           : undefined,
@@ -88,12 +89,13 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto) {
     await this.findOne(id);
-    const { imageUrls, variants, categoryId, ...rest } = dto;
+    const { imageUrls, variants, categoryId, vendorId, ...rest } = dto;
     return this.prisma.product.update({
       where: { id },
       data: {
         ...rest,
         ...(categoryId && { category: { connect: { id: categoryId } } }),
+        ...(vendorId && { suplier: { connect: { id: vendorId } } }),
       },
       include: { images: true, variants: true, category: true },
     });

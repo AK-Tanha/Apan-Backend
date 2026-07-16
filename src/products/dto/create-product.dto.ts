@@ -36,6 +36,11 @@ export class CreateProductDto {
   @IsNotEmpty()
   categoryId: string;
 
+  @ApiProperty({ example: 'suplier-uuid-here', required: false })
+  @IsString()
+  @IsOptional()
+  vendorId?: string;
+
   @ApiProperty({ example: ['https://example.com/img1.jpg'], required: false })
   @IsOptional()
   @IsArray()

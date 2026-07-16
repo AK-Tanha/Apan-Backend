@@ -56,6 +56,9 @@ model Product {
   variants ProductVariant[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+
+  suplier  Vendor? @relation(fields: [vendorId], references: [id])
+  vendorId String?
 }
 
 model ProductImage {
@@ -161,6 +164,7 @@ model Vendor {
   createdAt DateTime @default(now())
 
   purchaseOrders PurchaseOrder[]
+  products       Product[]
 }
 
 model PurchaseOrder {
