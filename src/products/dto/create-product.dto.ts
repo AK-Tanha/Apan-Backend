@@ -39,7 +39,7 @@ export class CreateProductDto {
   @ApiProperty({ example: 'suplier-uuid-here', required: false })
   @IsString()
   @IsOptional()
-  vendorId?: string;
+  supplierId?: string;
 
   @ApiProperty({ example: ['https://example.com/img1.jpg'], required: false })
   @IsOptional()

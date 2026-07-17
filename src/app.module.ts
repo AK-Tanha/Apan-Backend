@@ -8,11 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { CustomersModule } from './customers/customers.module';
-import { VendorsModule } from './vendors/vendors.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, CategoriesModule, ProductsModule, CartModule, OrdersModule, CustomersModule, VendorsModule, PurchaseOrdersModule],
+  imports: [PrismaModule, AuthModule, CategoriesModule, ProductsModule, CartModule, OrdersModule, CustomersModule, SuppliersModule, PurchaseOrdersModule],
   controllers: [AppController],
   providers: [AppService],
 })

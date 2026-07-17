@@ -16,7 +16,7 @@ export class PurchaseOrdersService {
 
     return this.prisma.purchaseOrder.create({
       data: {
-        vendorId: dto.vendorId,
+        supplierId: dto.supplierId,
         notes: dto.notes,
         totalCost,
         items: {
@@ -27,13 +27,13 @@ export class PurchaseOrdersService {
           })),
         },
       },
-      include: { items: { include: { variant: true } }, vendor: true },
+      include: { items: { include: { variant: true } }, supplier: true },
     });
   }
 
   findAll() {
     return this.prisma.purchaseOrder.findMany({
-      include: { vendor: true, items: { include: { variant: true } } },
+      include: { supplier: true, items: { include: { variant: true } } },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -41,7 +41,7 @@ export class PurchaseOrdersService {
   async findOne(id: string) {
     const po = await this.prisma.purchaseOrder.findUnique({
       where: { id },
-      include: { vendor: true, items: { include: { variant: { include: { product: true } } } } },
+      include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
     });
     if (!po) throw new NotFoundException('Purchase order not found');
     return po;
@@ -80,7 +80,7 @@ export class PurchaseOrdersService {
         return tx.purchaseOrder.update({
           where: { id },
           data: { status: 'RECEIVED', receivedAt: new Date() },
-          include: { items: { include: { variant: true } }, vendor: true },
+          include: { items: { include: { variant: true } }, supplier: true },
         });
       });
     }

@@ -30,10 +30,10 @@ class PurchaseOrderItemDto {
 }
 
 export class CreatePurchaseOrderDto {
-  @ApiProperty({ example: 'vendor-uuid-here' })
+  @ApiProperty({ example: 'supplier-uuid-here' })
   @IsString()
   @IsNotEmpty()
-  vendorId: string;
+  supplierId: string;
 
   @ApiProperty({ example: 'Restock for July collection', required: false })
   @IsOptional()
