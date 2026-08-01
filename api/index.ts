@@ -9,6 +9,41 @@ import express from 'express';
 
 const server = express();
 
+const SWAGGER_CDN = 'https://unpkg.com/swagger-ui-dist@5.32.8';
+
+const swaggerHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Apan Apparel API - Swagger UI</title>
+  <link rel="stylesheet" type="text/css" href="${SWAGGER_CDN}/swagger-ui.css" />
+  <link rel="icon" type="image/png" href="${SWAGGER_CDN}/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="${SWAGGER_CDN}/favicon-16x16.png" sizes="16x16" />
+  <style>
+    html { box-sizing: border-box; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin: 0; background: #fafafa; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="${SWAGGER_CDN}/swagger-ui-bundle.js"></script>
+  <script src="${SWAGGER_CDN}/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function () {
+      window.ui = SwaggerUIBundle({
+        url: '/api/docs-json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        displayRequestDuration: true,
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        layout: 'StandaloneLayout',
+      });
+    };
+  </script>
+</body>
+</html>`;
+
 let cachedApp: any;
 
 async function bootstrap() {
@@ -34,7 +69,10 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+
+  server.get('/api/docs-json', (req, res) => res.json(document));
+  server.get('/api/docs', (req, res) => res.type('html').send(swaggerHtml));
+  server.get('/api/docs/', (req, res) => res.type('html').send(swaggerHtml));
 
   await app.init();
   return app;
