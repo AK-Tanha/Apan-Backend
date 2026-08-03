@@ -9,17 +9,34 @@ import { Prisma } from '@prisma/client';
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
+  private buildImageData(
+    imageUrls?: string[],
+    heroImageUrl?: string,
+  ): { url: string; isHero: boolean }[] | undefined {
+    if (!imageUrls || imageUrls.length === 0) return undefined;
+    const hero = imageUrls.includes(heroImageUrl ?? '')
+      ? heroImageUrl
+      : imageUrls[0];
+    return imageUrls.map((url) => ({ url, isHero: url === hero }));
+  }
+
   create(dto: CreateProductDto) {
-    const { imageUrls, variants, categoryId, supplierId, ...rest } = dto;
+    const {
+      imageUrls,
+      heroImageUrl,
+      variants,
+      categoryId,
+      supplierId,
+      ...rest
+    } = dto;
+    const images = this.buildImageData(imageUrls, heroImageUrl);
 
     return this.prisma.product.create({
       data: {
         ...rest,
         category: { connect: { id: categoryId } },
         ...(supplierId && { suplier: { connect: { id: supplierId } } }),
-        images: imageUrls
-          ? { create: imageUrls.map((url) => ({ url })) }
-          : undefined,
+        ...(images && { images: { create: images } }),
         variants: { create: variants },
       },
       include: { images: true, variants: true, category: true },
@@ -89,13 +106,29 @@ export class ProductsService {
 
   async update(id: string, dto: UpdateProductDto) {
     await this.findOne(id);
-    const { imageUrls, variants, categoryId, supplierId, ...rest } = dto;
+
+    const {
+      imageUrls,
+      heroImageUrl,
+      variants, // eslint-disable-line @typescript-eslint/no-unused-vars -- not editable via this endpoint
+      categoryId,
+      supplierId,
+      ...rest
+    } = dto;
+    const images = this.buildImageData(imageUrls, heroImageUrl);
+
     return this.prisma.product.update({
       where: { id },
       data: {
         ...rest,
         ...(categoryId && { category: { connect: { id: categoryId } } }),
         ...(supplierId && { suplier: { connect: { id: supplierId } } }),
+        ...(images && {
+          images: {
+            deleteMany: {},
+            create: images,
+          },
+        }),
       },
       include: { images: true, variants: true, category: true },
     });

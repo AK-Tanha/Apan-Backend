@@ -10,13 +10,26 @@ import { OrdersModule } from './orders/orders.module';
 import { CustomersModule } from './customers/customers.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, CategoriesModule, ProductsModule, CartModule, OrdersModule, CustomersModule, SuppliersModule, PurchaseOrdersModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    CategoriesModule,
+    ProductsModule,
+    CartModule,
+    OrdersModule,
+    CustomersModule,
+    SuppliersModule,
+    PurchaseOrdersModule,
+    UploadsModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-
 @Module({
   imports: [PrismaModule],
 })

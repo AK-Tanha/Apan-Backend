@@ -47,6 +47,16 @@ export class CreateProductDto {
   @IsString({ each: true })
   imageUrls?: string[];
 
+  @ApiProperty({
+    example: 'https://example.com/img1.jpg',
+    description:
+      'URL of the primary/hero image. Defaults to the first entry in imageUrls when omitted.',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  heroImageUrl?: string;
+
   @ApiProperty({ type: [CreateVariantDto] })
   @IsArray()
   @ArrayMinSize(1)

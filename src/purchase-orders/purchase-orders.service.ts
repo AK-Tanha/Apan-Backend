@@ -33,7 +33,10 @@ export class PurchaseOrdersService {
 
   findAll() {
     return this.prisma.purchaseOrder.findMany({
-      include: { supplier: true, items: { include: { variant: true } } },
+      include: {
+        supplier: true,
+        items: { include: { variant: { include: { product: true } } } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
