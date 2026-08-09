@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -41,7 +45,9 @@ export class CartService {
 
     // if this exact variant is already in the cart, bump quantity instead of duplicating
     const existing = await this.prisma.cartItem.findUnique({
-      where: { cartId_variantId: { cartId: cart.id, variantId: dto.variantId } },
+      where: {
+        cartId_variantId: { cartId: cart.id, variantId: dto.variantId },
+      },
     });
 
     if (existing) {
@@ -63,7 +69,9 @@ export class CartService {
 
   async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
     const cart = await this.getOrCreateCart(userId);
-    const item = await this.prisma.cartItem.findUnique({ where: { id: itemId } });
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
+    });
 
     if (!item || item.cartId !== cart.id) {
       throw new NotFoundException('Cart item not found');
@@ -77,7 +85,9 @@ export class CartService {
 
   async removeItem(userId: string, itemId: string) {
     const cart = await this.getOrCreateCart(userId);
-    const item = await this.prisma.cartItem.findUnique({ where: { id: itemId } });
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
+    });
 
     if (!item || item.cartId !== cart.id) {
       throw new NotFoundException('Cart item not found');

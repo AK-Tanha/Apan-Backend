@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 
-
 @Injectable()
 export class SuppliersService {
   constructor(private prisma: PrismaService) {}
@@ -37,6 +36,9 @@ export class SuppliersService {
   async remove(id: string) {
     await this.findOne(id);
     // soft delete — suppliers have purchase order history, hard delete would orphan those records
-    return this.prisma.supplier.update({ where: { id }, data: { isActive: false } });
+    return this.prisma.supplier.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 }

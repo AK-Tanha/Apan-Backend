@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { UpdatePurchaseOrderStatusDto } from './dto/update-po-status.dto';
@@ -44,7 +48,10 @@ export class PurchaseOrdersService {
   async findOne(id: string) {
     const po = await this.prisma.purchaseOrder.findUnique({
       where: { id },
-      include: { supplier: true, items: { include: { variant: { include: { product: true } } } } },
+      include: {
+        supplier: true,
+        items: { include: { variant: { include: { product: true } } } },
+      },
     });
     if (!po) throw new NotFoundException('Purchase order not found');
     return po;

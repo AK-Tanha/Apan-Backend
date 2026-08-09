@@ -41,6 +41,20 @@ export class CreateProductDto {
   @IsOptional()
   supplierId?: string;
 
+  @ApiProperty({ example: 'brand-uuid-here', required: false })
+  @IsString()
+  @IsOptional()
+  brandId?: string;
+
+  @ApiProperty({
+    example: ['collection-uuid-1', 'collection-uuid-2'],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  collectionIds?: string[];
+
   @ApiProperty({ example: ['https://example.com/img1.jpg'], required: false })
   @IsOptional()
   @IsArray()

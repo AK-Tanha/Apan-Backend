@@ -27,6 +27,8 @@ export class ProductsService {
       variants,
       categoryId,
       supplierId,
+      brandId,
+      collectionIds,
       ...rest
     } = dto;
     const images = this.buildImageData(imageUrls, heroImageUrl);
@@ -36,10 +38,20 @@ export class ProductsService {
         ...rest,
         category: { connect: { id: categoryId } },
         ...(supplierId && { suplier: { connect: { id: supplierId } } }),
+        ...(brandId && { brand: { connect: { id: brandId } } }),
+        ...(collectionIds && {
+          collections: { connect: collectionIds.map((id) => ({ id })) },
+        }),
         ...(images && { images: { create: images } }),
         variants: { create: variants },
       },
-      include: { images: true, variants: true, category: true },
+      include: {
+        images: true,
+        variants: true,
+        category: true,
+        brand: true,
+        collections: true,
+      },
     });
   }
 
@@ -49,6 +61,7 @@ export class ProductsService {
     const {
       search,
       categoryId,
+      collectionId,
       size,
       color,
       minPrice,
@@ -61,6 +74,9 @@ export class ProductsService {
       isActive: true,
       ...(search && { name: { contains: search, mode: 'insensitive' } }),
       ...(categoryId && { categoryId }),
+      ...(collectionId && {
+        collections: { some: { id: collectionId } },
+      }),
       ...(minPrice !== undefined && { basePrice: { gte: minPrice } }),
       ...(maxPrice !== undefined && { basePrice: { lte: maxPrice } }),
       ...((size || color) && {
@@ -76,7 +92,13 @@ export class ProductsService {
     const [products, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
-        include: { images: true, variants: true, category: true },
+        include: {
+          images: true,
+          variants: true,
+          category: true,
+          brand: true,
+          collections: true,
+        },
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -98,7 +120,13 @@ export class ProductsService {
   async findOne(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { images: true, variants: true, category: true },
+      include: {
+        images: true,
+        variants: true,
+        category: true,
+        brand: true,
+        collections: true,
+      },
     });
     if (!product) throw new NotFoundException(`Product ${id} not found`);
     return product;
@@ -113,6 +141,8 @@ export class ProductsService {
       variants, // eslint-disable-line @typescript-eslint/no-unused-vars -- not editable via this endpoint
       categoryId,
       supplierId,
+      brandId,
+      collectionIds,
       ...rest
     } = dto;
     const images = this.buildImageData(imageUrls, heroImageUrl);
@@ -123,6 +153,12 @@ export class ProductsService {
         ...rest,
         ...(categoryId && { category: { connect: { id: categoryId } } }),
         ...(supplierId && { suplier: { connect: { id: supplierId } } }),
+        ...(brandId
+          ? { brand: { connect: { id: brandId } } }
+          : { brand: { disconnect: true } }),
+        ...(collectionIds && {
+          collections: { set: collectionIds.map((id) => ({ id })) },
+        }),
         ...(images && {
           images: {
             deleteMany: {},
@@ -130,7 +166,13 @@ export class ProductsService {
           },
         }),
       },
-      include: { images: true, variants: true, category: true },
+      include: {
+        images: true,
+        variants: true,
+        category: true,
+        brand: true,
+        collections: true,
+      },
     });
   }
 

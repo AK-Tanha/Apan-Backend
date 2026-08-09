@@ -40,6 +40,25 @@ model Category {
   products Product[]
 }
 
+model Brand {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  products Product[]
+}
+
 model Product {
   id          String   @id @default(uuid())
   name        String
@@ -51,6 +70,11 @@ model Product {
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
+
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id])
+
+  collections Collection[]
 
   images   ProductImage[]
   variants ProductVariant[]

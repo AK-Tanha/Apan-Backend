@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PurchaseOrdersService } from './purchase-orders.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
@@ -34,8 +42,13 @@ export class PurchaseOrdersController {
   }
 
   @Patch(':id/status')
-  @ApiOperation({ summary: 'Update purchase order status (RECEIVED triggers stock increment)' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderStatusDto) {
+  @ApiOperation({
+    summary: 'Update purchase order status (RECEIVED triggers stock increment)',
+  })
+  updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdatePurchaseOrderStatusDto,
+  ) {
     return this.poService.updateStatus(id, dto);
   }
 }

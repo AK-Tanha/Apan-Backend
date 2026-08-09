@@ -16,6 +16,11 @@ export class QueryProductDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  collectionId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   size?: string;
 
   @ApiPropertyOptional()

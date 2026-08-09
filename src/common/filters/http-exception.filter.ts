@@ -44,7 +44,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // only log unexpected 500s loudly — 4xx are normal client errors, not bugs
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.logger.error(exception instanceof Error ? exception.stack : exception);
+      this.logger.error(
+        exception instanceof Error ? exception.stack : exception,
+      );
     }
 
     response.status(status).json({
