@@ -27,6 +27,7 @@ model User {
   password  String
   role      Role     @default(USER)
   address   String?
+  image     String?
   createdAt DateTime @default(now())
 
   cart   Cart?

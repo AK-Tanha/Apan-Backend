@@ -1,10 +1,17 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+
+export interface AuthedUser {
+  userId: string;
+  phone: string;
+  role: 'USER' | 'ADMIN';
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,7 +34,15 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current logged-in user (protected route)' })
-  getMe(@CurrentUser() user: any) {
-    return user;
+  getMe(@CurrentUser() user: AuthedUser) {
+    return this.authService.getProfile(user.userId);
+  }
+
+  @Patch('me')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update current user profile (protected route)' })
+  updateMe(@CurrentUser() user: AuthedUser, @Body() dto: UpdateProfileDto) {
+    return this.authService.updateProfile(user.userId, dto);
   }
 }
