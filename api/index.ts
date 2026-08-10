@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
@@ -48,7 +49,14 @@ const swaggerHtml = `<!DOCTYPE html>
 let cachedApp: any;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    new ExpressAdapter(server),
+    { bodyParser: false },
+  );
+
+  app.useBodyParser('json', { limit: '11mb' });
+  app.useBodyParser('urlencoded', { limit: '11mb', extended: true });
 
   app.enableCors();
 
