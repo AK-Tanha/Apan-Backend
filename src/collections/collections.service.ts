@@ -31,6 +31,15 @@ export class CollectionsService {
             basePrice: true,
             category: { select: { name: true } },
             images: { select: { url: true, isHero: true } },
+            variants: {
+              select: {
+                id: true,
+                size: true,
+                color: true,
+                stock: true,
+                price: true,
+              },
+            },
           },
           orderBy: { createdAt: 'desc' },
         },

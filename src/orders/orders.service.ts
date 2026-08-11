@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Injectable()
@@ -74,6 +75,75 @@ export class OrdersService {
       include: { items: { include: { product: true, variant: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async createGuestOrder(dto: CreateGuestOrderDto, userId?: string) {
+    const variants = await this.prisma.productVariant.findMany({
+      where: { id: { in: dto.items.map((i) => i.variantId) } },
+      include: { product: true },
+    });
+
+    for (const item of dto.items) {
+      const variant = variants.find((v) => v.id === item.variantId);
+      if (!variant) {
+        throw new BadRequestException('A product in your bag is no longer available');
+      }
+      if (variant.stock < item.quantity) {
+        throw new BadRequestException(
+          `Not enough stock for ${variant.product.name} (${variant.size}/${variant.color})`,
+        );
+      }
+    }
+
+    const totalAmount = dto.items.reduce((sum, item) => {
+      const variant = variants.find((v) => v.id === item.variantId)!;
+      const price = variant.price ?? variant.product.basePrice;
+      return sum + Number(price) * item.quantity;
+    }, 0);
+
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.create({
+        data: {
+          userId: userId ?? null,
+          name: dto.name,
+          phone: dto.phone,
+          address: dto.address,
+          totalAmount,
+          items: {
+            create: dto.items.map((item) => {
+              const variant = variants.find((v) => v.id === item.variantId)!;
+              return {
+                productId: variant.productId,
+                variantId: item.variantId,
+                quantity: item.quantity,
+                price: variant.price ?? variant.product.basePrice,
+              };
+            }),
+          },
+        },
+        include: { items: { include: { product: true, variant: true } } },
+      });
+
+      for (const item of dto.items) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+
+      return order;
+    });
+  }
+
+  async findByIdAndPhone(id: string, phone: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: { include: { product: true, variant: true } } },
+    });
+    if (!order || order.phone !== phone) {
+      throw new NotFoundException('Order not found');
+    }
+    return order;
   }
 
   async findOne(userId: string, id: string) {

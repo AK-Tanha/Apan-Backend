@@ -143,10 +143,11 @@ model Order {
   totalAmount Decimal     @db.Decimal(10, 2)
   address     String
   phone       String
+  name        String?
   createdAt   DateTime    @default(now())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
 
   items OrderItem[]
 }
