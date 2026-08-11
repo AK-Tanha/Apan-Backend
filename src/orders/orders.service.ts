@@ -12,6 +12,15 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
+  private orderItems = {
+    include: {
+      product: { include: { images: true } },
+      variant: true,
+    },
+  };
+
+  private user = { omit: { password: true } };
+
   async createFromCart(userId: string, dto: CreateOrderDto) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
@@ -53,7 +62,7 @@ export class OrdersService {
             })),
           },
         },
-        include: { items: true },
+        include: { items: this.orderItems, user: this.user },
       });
 
       for (const item of cart.items) {
@@ -72,7 +81,7 @@ export class OrdersService {
   findAllForUser(userId: string) {
     return this.prisma.order.findMany({
       where: { userId },
-      include: { items: { include: { product: true, variant: true } } },
+      include: { items: this.orderItems, user: this.user },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -121,7 +130,7 @@ export class OrdersService {
             }),
           },
         },
-        include: { items: { include: { product: true, variant: true } } },
+        include: { items: this.orderItems, user: this.user },
       });
 
       for (const item of dto.items) {
@@ -138,7 +147,7 @@ export class OrdersService {
   async findByIdAndPhone(id: string, phone: string) {
     const order = await this.prisma.order.findUnique({
       where: { id },
-      include: { items: { include: { product: true, variant: true } } },
+      include: { items: this.orderItems, user: this.user },
     });
     if (!order || order.phone !== phone) {
       throw new NotFoundException('Order not found');
@@ -149,7 +158,7 @@ export class OrdersService {
   async findOne(userId: string, id: string) {
     const order = await this.prisma.order.findUnique({
       where: { id },
-      include: { items: { include: { product: true, variant: true } } },
+      include: { items: this.orderItems, user: this.user },
     });
     if (!order || order.userId !== userId) {
       throw new NotFoundException('Order not found');
@@ -171,8 +180,8 @@ export class OrdersService {
   findAllAdmin() {
     return this.prisma.order.findMany({
       include: {
-        items: { include: { product: true, variant: true } },
-        user: true,
+        items: this.orderItems,
+        user: this.user,
       },
       orderBy: { createdAt: 'desc' },
     });
