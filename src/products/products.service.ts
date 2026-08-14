@@ -178,6 +178,22 @@ export class ProductsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    return this.prisma.product.delete({ where: { id } });
+    try {
+      return await this.prisma.product.delete({ where: { id } });
+    } catch (err) {
+      // Product is referenced by orders, carts, stock movements or purchase
+      // orders (those relations are Restrict, not Cascade) so a hard delete is
+      // rejected. Archive it instead so history stays intact.
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2003'
+      ) {
+        return this.prisma.product.update({
+          where: { id },
+          data: { isActive: false },
+        });
+      }
+      throw err;
+    }
   }
 }

@@ -11,6 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
+import { CreateAdminOrderDto } from './dto/create-admin-order.dto';
 import { LookupOrderDto } from './dto/lookup-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -57,6 +58,25 @@ export class OrdersController {
   @ApiOperation({ summary: 'List all orders (admin only)' })
   findAllAdmin() {
     return this.ordersService.findAllAdmin();
+  }
+
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Get any order by id (admin only)' })
+  findOneAdmin(@Param('id') id: string) {
+    return this.ordersService.findOneAdmin(id);
+  }
+
+  @Post('admin/create')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary:
+      'Place an order on behalf of a customer (admin only). Attaches an existing customer by id, otherwise reuses/creates a user by phone.',
+  })
+  createAdmin(@Body() dto: CreateAdminOrderDto) {
+    return this.ordersService.createAdminOrder(dto);
   }
 
   @Patch(':id/status')
