@@ -14,6 +14,7 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { UsersModule } from './users/users.module';
+import { SiteModule } from './site/site.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module';
     PurchaseOrdersModule,
     UploadsModule,
     UsersModule,
+    SiteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

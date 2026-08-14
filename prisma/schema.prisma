@@ -234,3 +234,11 @@ model StockMovement {
   orderId         String?
   purchaseOrderId String?
 }
+
+model SiteSetting {
+  id          String   @id @default("default")
+  siteName    String   @default("APAN Apparel")
+  logoUrl     String?
+  description String?
+  updatedAt   DateTime @updatedAt
+}
