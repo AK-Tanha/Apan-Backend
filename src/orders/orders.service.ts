@@ -5,10 +5,12 @@ import {
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { CreateAdminOrderDto } from './dto/create-admin-order.dto';
+import { AdminUpdateOrderDto } from './dto/update-admin-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Injectable()
@@ -282,5 +284,117 @@ export class OrdersService {
     });
     if (!order) throw new NotFoundException('Order not found');
     return order;
+  }
+
+  async updateAdminOrder(id: string, dto: AdminUpdateOrderDto) {
+    const existing = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+    if (!existing) throw new NotFoundException('Order not found');
+
+    const oldByVariant = new Map<string, number>();
+    for (const item of existing.items) {
+      oldByVariant.set(
+        item.variantId,
+        (oldByVariant.get(item.variantId) ?? 0) + item.quantity,
+      );
+    }
+
+    type VariantWithProduct = Prisma.ProductVariantGetPayload<{
+      include: { product: true };
+    }>;
+    let variants: VariantWithProduct[] = [];
+    let totalAmount: number | undefined;
+
+    if (dto.items) {
+      variants = await this.prisma.productVariant.findMany({
+        where: { id: { in: dto.items.map((i) => i.variantId) } },
+        include: { product: true },
+      });
+
+      for (const item of dto.items) {
+        const variant = variants.find((v) => v.id === item.variantId);
+        if (!variant) {
+          throw new BadRequestException(
+            'A product in this order is no longer available',
+          );
+        }
+        const oldQty = oldByVariant.get(item.variantId) ?? 0;
+        if (variant.stock + oldQty < item.quantity) {
+          throw new BadRequestException(
+            `Not enough stock for ${variant.product.name} (${variant.size}/${variant.color})`,
+          );
+        }
+      }
+
+      totalAmount = dto.items.reduce((sum, item) => {
+        const variant = variants.find((v) => v.id === item.variantId)!;
+        const price = variant.price ?? variant.product.basePrice;
+        return sum + Number(price) * item.quantity;
+      }, 0);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.items) {
+        // return everything the old order held, then take what the new one needs
+        for (const [variantId, oldQty] of oldByVariant) {
+          await tx.productVariant.update({
+            where: { id: variantId },
+            data: { stock: { increment: oldQty } },
+          });
+        }
+        for (const item of dto.items) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
+      }
+
+      return tx.order.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined && { name: dto.name }),
+          ...(dto.phone !== undefined && { phone: dto.phone }),
+          ...(dto.address !== undefined && { address: dto.address }),
+          ...(dto.items && {
+            totalAmount,
+            items: {
+              deleteMany: {},
+              create: dto.items.map((item) => {
+                const variant = variants.find((v) => v.id === item.variantId)!;
+                return {
+                  productId: variant.productId,
+                  variantId: item.variantId,
+                  quantity: item.quantity,
+                  price: variant.price ?? variant.product.basePrice,
+                };
+              }),
+            },
+          }),
+        },
+        include: { items: this.orderItems, user: this.user },
+      });
+    });
+  }
+
+  async removeAdminOrder(id: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      for (const item of order.items) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+      await tx.order.delete({ where: { id } });
+      return order;
+    });
   }
 }

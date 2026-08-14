@@ -6,12 +6,14 @@ import {
   Param,
   UseGuards,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { CreateAdminOrderDto } from './dto/create-admin-order.dto';
+import { AdminUpdateOrderDto } from './dto/update-admin-order.dto';
 import { LookupOrderDto } from './dto/lookup-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -66,6 +68,30 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get any order by id (admin only)' })
   findOneAdmin(@Param('id') id: string) {
     return this.ordersService.findOneAdmin(id);
+  }
+
+  @Patch('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary:
+      'Edit an order (admin only). Updates name/phone/address and optionally replaces the items, reconciling stock.',
+  })
+  updateAdmin(
+    @Param('id') id: string,
+    @Body() dto: AdminUpdateOrderDto,
+  ) {
+    return this.ordersService.updateAdminOrder(id, dto);
+  }
+
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Delete an order (admin only). Restores the items stock.',
+  })
+  removeAdmin(@Param('id') id: string) {
+    return this.ordersService.removeAdminOrder(id);
   }
 
   @Post('admin/create')
