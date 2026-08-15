@@ -100,7 +100,9 @@ export class OrdersService {
     for (const item of dto.items) {
       const variant = variants.find((v) => v.id === item.variantId);
       if (!variant) {
-        throw new BadRequestException('A product in your bag is no longer available');
+        throw new BadRequestException(
+          'A product in your bag is no longer available',
+        );
       }
       if (variant.stock < item.quantity) {
         throw new BadRequestException(

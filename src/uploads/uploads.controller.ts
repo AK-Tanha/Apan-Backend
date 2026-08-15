@@ -15,7 +15,9 @@ export class UploadsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'USER')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Upload an image to Vercel Blob (authenticated users)' })
+  @ApiOperation({
+    summary: 'Upload an image to Vercel Blob (authenticated users)',
+  })
   upload(@Body() dto: UploadFileDto) {
     return this.uploadsService.upload(dto);
   }

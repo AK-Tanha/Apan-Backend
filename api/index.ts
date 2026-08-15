@@ -7,6 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { AllExceptionsFilter } from '../src/common/filters/http-exception.filter';
 import { ResponseInterceptor } from '../src/common/interceptors/response.interceptor';
+import { CacheControlInterceptor } from '../src/common/interceptors/cache-control.interceptor';
 import express from 'express';
 
 const server = express();
@@ -69,19 +70,22 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(new CacheControlInterceptor());
 
-  const config = new DocumentBuilder()
-    .setTitle('Apan Apparel API')
-    .setDescription('Backend API for Court Classic / Apan Apparel storefront')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Apan Apparel API')
+      .setDescription('Backend API for Court Classic / Apan Apparel storefront')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+    const document = SwaggerModule.createDocument(app, config);
 
-  server.get('/api/docs-json', (req, res) => res.json(document));
-  server.get('/api/docs', (req, res) => res.type('html').send(swaggerHtml));
-  server.get('/api/docs/', (req, res) => res.type('html').send(swaggerHtml));
+    server.get('/api/docs-json', (req, res) => res.json(document));
+    server.get('/api/docs', (req, res) => res.type('html').send(swaggerHtml));
+    server.get('/api/docs/', (req, res) => res.type('html').send(swaggerHtml));
+  }
 
   await app.init();
   return app;

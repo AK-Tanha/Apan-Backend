@@ -17,6 +17,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { QueryProductDto } from './dto/query-product.dto';
+import { CacheControl } from 'src/common/decorators/cache-control.decorator';
 
 @ApiTags('products')
 @Controller('products')
@@ -33,12 +34,14 @@ export class ProductsController {
   }
 
   @Get()
+  @CacheControl('public, max-age=60, s-maxage=60, stale-while-revalidate=300')
   @ApiOperation({ summary: 'List/search/filter products' })
   findAll(@Query() query: QueryProductDto) {
     return this.productsService.findAll(query);
   }
 
   @Get(':id')
+  @CacheControl('public, max-age=60, s-maxage=60, stale-while-revalidate=300')
   @ApiOperation({ summary: 'Get one product' })
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);

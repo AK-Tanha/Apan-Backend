@@ -36,7 +36,4 @@ import { SiteModule } from './site/site.module';
   controllers: [AppController],
   providers: [AppService],
 })
-@Module({
-  imports: [PrismaModule],
-})
 export class AppModule {}

@@ -41,10 +41,7 @@ export class OrdersController {
     summary:
       'Checkout without an account. Attaches the user when a valid token is present.',
   })
-  createGuest(
-    @CurrentUser() user: any,
-    @Body() dto: CreateGuestOrderDto,
-  ) {
+  createGuest(@CurrentUser() user: any, @Body() dto: CreateGuestOrderDto) {
     return this.ordersService.createGuestOrder(dto, user?.userId);
   }
 
@@ -77,10 +74,7 @@ export class OrdersController {
     summary:
       'Edit an order (admin only). Updates name/phone/address and optionally replaces the items, reconciling stock.',
   })
-  updateAdmin(
-    @Param('id') id: string,
-    @Body() dto: AdminUpdateOrderDto,
-  ) {
+  updateAdmin(@Param('id') id: string, @Body() dto: AdminUpdateOrderDto) {
     return this.ordersService.updateAdminOrder(id, dto);
   }
 
