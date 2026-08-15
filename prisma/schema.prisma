@@ -54,6 +54,7 @@ model Collection {
   slug        String   @unique
   description String?
   image       String?
+  mobileImage String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 

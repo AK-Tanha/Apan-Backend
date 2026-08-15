@@ -25,6 +25,15 @@ export class CreateCollectionDto {
   @IsString()
   image?: string;
 
+  @ApiPropertyOptional({
+    example: 'https://picsum.photos/seed/collection/600/1200',
+    description:
+      'Portrait image for small screens (hero on mobile). Falls back to `image` when not set.',
+  })
+  @IsOptional()
+  @IsString()
+  mobileImage?: string;
+
   @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()
   @IsBoolean()
