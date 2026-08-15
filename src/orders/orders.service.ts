@@ -77,6 +77,20 @@ export class OrdersService {
         });
       }
 
+      await Promise.all(
+        cart.items.map((item) =>
+          tx.stockMovement.create({
+            data: {
+              variantId: item.variantId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              reason: `Sale — order ${order.id}`,
+              orderId: order.id,
+            },
+          }),
+        ),
+      );
+
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       return order;
@@ -146,6 +160,20 @@ export class OrdersService {
           data: { stock: { decrement: item.quantity } },
         });
       }
+
+      await Promise.all(
+        dto.items.map((item) =>
+          tx.stockMovement.create({
+            data: {
+              variantId: item.variantId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              reason: `Sale — order ${order.id}`,
+              orderId: order.id,
+            },
+          }),
+        ),
+      );
 
       return order;
     });
@@ -242,6 +270,20 @@ export class OrdersService {
           data: { stock: { decrement: item.quantity } },
         });
       }
+
+      await Promise.all(
+        dto.items.map((item) =>
+          tx.stockMovement.create({
+            data: {
+              variantId: item.variantId,
+              type: 'SALE_OUT',
+              quantity: -item.quantity,
+              reason: `Sale — order ${order.id}`,
+              orderId: order.id,
+            },
+          }),
+        ),
+      );
 
       return order;
     });
@@ -352,6 +394,36 @@ export class OrdersService {
             data: { stock: { decrement: item.quantity } },
           });
         }
+
+        // record a single movement per variant capturing the net stock change
+        const newByVariant = new Map<string, number>();
+        for (const item of dto.items) {
+          newByVariant.set(
+            item.variantId,
+            (newByVariant.get(item.variantId) ?? 0) + item.quantity,
+          );
+        }
+        const touched = new Set([
+          ...oldByVariant.keys(),
+          ...newByVariant.keys(),
+        ]);
+        await Promise.all(
+          Array.from(touched).map((variantId) => {
+            const oldQty = oldByVariant.get(variantId) ?? 0;
+            const newQty = newByVariant.get(variantId) ?? 0;
+            const net = oldQty - newQty;
+            if (net === 0) return Promise.resolve();
+            return tx.stockMovement.create({
+              data: {
+                variantId,
+                type: 'ADJUSTMENT',
+                quantity: net,
+                reason: `Order ${id} items updated`,
+                orderId: id,
+              },
+            });
+          }),
+        );
       }
 
       return tx.order.update({
@@ -393,6 +465,15 @@ export class OrdersService {
         await tx.productVariant.update({
           where: { id: item.variantId },
           data: { stock: { increment: item.quantity } },
+        });
+        await tx.stockMovement.create({
+          data: {
+            variantId: item.variantId,
+            type: 'RETURN_IN',
+            quantity: item.quantity,
+            reason: `Order ${id} deleted — stock returned`,
+            orderId: id,
+          },
         });
       }
       await tx.order.delete({ where: { id } });

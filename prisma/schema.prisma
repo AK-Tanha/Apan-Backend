@@ -223,7 +223,7 @@ model PurchaseOrderItem {
 model StockMovement {
   id        String            @id @default(uuid())
   type      StockMovementType
-  quantity  Int               // always positive; `type` tells you direction
+  quantity  Int               // signed: positive = stock in, negative = stock out
   reason    String?
   createdAt DateTime          @default(now())
 
