@@ -30,6 +30,12 @@ export class AuthService {
       data: { name: dto.name, phone: dto.phone, password: hashedPassword },
     });
 
+    // Claim any guest orders placed with the same phone number.
+    await this.prisma.order.updateMany({
+      where: { phone: dto.phone, userId: null },
+      data: { userId: user.id },
+    });
+
     return this.signToken(user.id, user.phone, user.role);
   }
 
