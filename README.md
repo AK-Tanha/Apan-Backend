@@ -1,29 +1,35 @@
 <p align="center">
-  <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />
+  <h1 align="center">APAN Apparel — Backend API</h1>
+  <p align="center"><em>Scalable e-commerce API built with NestJS, Prisma, and PostgreSQL</em></p>
 </p>
 
-# APAN Apparel — Backend (Apan-Backend)
+A production-ready REST API powering a full e-commerce platform for a premium apparel brand. Built with **NestJS**, **Prisma**, and **PostgreSQL**, it covers the entire commerce and inventory lifecycle — from catalog management and checkout to procurement and stock tracking. Deployed as a serverless function on Vercel.
 
-REST API backend for the APAN Apparel / Court Classic storefront. Built with [NestJS](https://nestjs.com), [Prisma](https://www.prisma.io), and PostgreSQL.
+## Highlights
 
-## Description
-
-Backend API powering the [storefront](https://github.com/AK-Tanha/Tshirt). Handles authentication, catalog management (products, categories, brands, collections), cart and orders, inventory tracking (stock movements, suppliers, purchase orders), image uploads (Vercel Blob), and site settings.
-
-Swagger docs are available at `/api/docs` in non-production environments.
+- **Complete commerce domain**: products with variants, images, categories, brands, and collections; guest and user carts; order management with status workflows.
+- **Inventory & procurement**: suppliers, purchase orders, and stock movements with full traceability back to orders and purchase orders.
+- **Authentication & authorization**: JWT-based auth with Passport, role-based access (USER / ADMIN), and secure password hashing.
+- **File uploads**: image storage via Vercel Blob.
+- **API documentation**: auto-generated Swagger/OpenAPI docs.
+- **Production-tested patterns**: global validation, centralized exception filter, uniform response envelope, and cache-control interceptor.
 
 ## Tech Stack
 
-- [NestJS](https://nestjs.com) 11
-- [Prisma](https://www.prisma.io) + PostgreSQL
-- [Passport](https://www.passportjs.org/) + JWT authentication
-- [Swagger](https://docs.nestjs.com/openapi/introduction) OpenAPI docs
-- [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) for image storage
-- Deployable as a serverless function on Vercel
+| Area | Technology |
+| --- | --- |
+| Framework | NestJS 11 (TypeScript) |
+| ORM | Prisma 6 |
+| Database | PostgreSQL |
+| Auth | Passport + JWT |
+| Validation | class-validator + class-transformer |
+| Docs | Swagger / OpenAPI |
+| Storage | Vercel Blob |
+| Deployment | Vercel (serverless) |
 
-## Project setup
+## Getting Started
 
-**Prerequisites:** Node.js and a PostgreSQL database.
+**Prerequisites:** Node.js 18+, and a PostgreSQL database.
 
 1. Install dependencies:
    ```bash
@@ -38,72 +44,58 @@ Swagger docs are available at `/api/docs` in non-production environments.
    BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxx"
    ```
 
-3. Run Prisma migrations and generate the client:
+3. Run migrations and generate the Prisma client:
    ```bash
    $ npx prisma migrate dev
    $ npx prisma generate
    ```
 
-## Compile and run the project
+## Running the API
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
+# development (watch mode)
 $ npm run start:dev
 
-# production mode
+# production
 $ npm run start:prod
 ```
 
-The API listens on `http://localhost:8000` by default (configurable via `PORT`). Swagger docs are served at `/api/docs`.
+The API listens on `http://localhost:8000` (configurable via `PORT`). Swagger docs are available at `/api/docs`.
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-The backend is configured to run as a serverless function on Vercel via `api/index.ts`. The `vercel-build` script deploys Prisma migrations, generates the Prisma client, and builds the app:
+## Tests
 
 ```bash
-$ npm run vercel-build
+$ npm run test       # unit tests
+$ npm run test:e2e   # e2e tests
+$ npm run test:cov   # test coverage
 ```
 
-Ensure the following environment variables are set in Vercel:
-- `DATABASE_URL` — PostgreSQL connection string
-- `JWT_SECRET` — secret used to sign/verify JWTs
-- `BLOB_READ_WRITE_TOKEN` — Vercel Blob read/write token for image uploads
+## Architecture
 
-## Project Structure
+```
+src/
+  auth/             JWT auth, guards, strategies, DTOs
+  products/         products, variants, images
+  brands/           brand management
+  categories/       category management
+  collections/      collection management
+  cart/             guest + user carts
+  orders/           orders and order items
+  suppliers/        supplier management
+  purchase-orders/  procurement
+  stock-movements/  inventory tracking
+  uploads/          Vercel Blob image uploads
+  site/             site settings
+  common/           shared filters, interceptors, utilities
+  prisma/           Prisma service
+prisma/             schema and migrations
+api/index.ts        Vercel serverless entrypoint
+```
 
-- `src/auth/` — authentication, guards, strategies, and DTOs
-- `src/products/`, `src/brands/`, `src/categories/`, `src/collections/` — catalog modules
-- `src/cart/`, `src/orders/` — commerce modules
-- `src/suppliers/`, `src/purchase-orders/`, `src/stock-movements/` — inventory modules
-- `src/uploads/` — Vercel Blob image uploads
-- `src/site/` — site settings
-- `src/common/` — shared filters, interceptors, and utilities
-- `src/prisma/` — Prisma service
-- `prisma/` — schema and migrations
-- `api/index.ts` — Vercel serverless entrypoint
+Requests flow through a consistent pipeline: global validation → exception filter → response interceptor, returning a uniform `{ success, statusCode, data }` envelope.
 
-## Deployed
+## Related
 
-- API: https://apan-backend.vercel.app
-- Storefront: https://apontraders.vercel.app
-
-## Repositories
-
-- Backend: https://github.com/AK-Tanha/Apan-Backend
-- Storefront: https://github.com/AK-Tanha/Tshirt
+- **Storefront**: [AK-Tanha/Tshirt](https://github.com/AK-Tanha/Tshirt) — Next.js e-commerce frontend
+- **Live API**: https://apan-backend.vercel.app
+- **Live storefront**: https://apontraders.vercel.app
